@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI model energy calculator</title>
+<style>
+  :root{
+    --plum:#4A334E; --stone:#604D64; --pebble:#E8E6E9; --offwhite:#F7F7F7; --chalk:#F0EFEE;
+    --yellow:#FFCE3B; --naranja:#FFA31D; --mint:#6DC695; --lavender:#9278DD; --clover:#287F66;
+  }
+  *{box-sizing:border-box; margin:0}
+  body{font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:var(--offwhite); color:var(--plum); padding:28px 16px 60px}
+  .wrap{max-width:880px; margin:0 auto}
+  h1{font-size:26px; font-weight:700; letter-spacing:-.3px}
+  .sub{color:var(--stone); margin:6px 0 22px; font-size:14.5px; max-width:640px}
+  .card{background:#fff; border:1px solid var(--pebble); border-radius:14px; padding:20px 22px; margin-bottom:16px}
+  label{font-size:12px; font-weight:600; color:var(--stone); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:5px}
+  select{width:100%; padding:9px 10px; border:1.5px solid var(--pebble); border-radius:8px; font-size:14px; color:var(--plum); background:#fff}
+  .grid2{display:grid; grid-template-columns:1fr 44px 1fr; gap:10px; align-items:start}
+  .grid2 > button{margin-top:22px}
+  #swap{height:40px; border:1.5px solid var(--pebble); background:var(--chalk); border-radius:8px; cursor:pointer; font-size:16px; color:var(--stone)}
+  #swap:hover{background:var(--pebble)}
+  .warn{display:none; margin-top:6px; font-size:12px; color:#8A5A00; background:#FFF3D6; border:1px solid #F0DCA8; border-radius:6px; padding:5px 8px; line-height:1.4}
+  .warn.show{display:block}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px}
+  .chip{padding:7px 14px; border-radius:999px; border:1.5px solid var(--pebble); background:#fff; font-size:13.5px; color:var(--stone); cursor:pointer}
+  .chip.on{background:var(--plum); border-color:var(--plum); color:#fff}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:16px; align-items:end}
+  input[type=range]{width:100%; accent-color:var(--plum)}
+  .rangeval{font-size:13.5px; color:var(--plum); font-weight:600}
+  .check{display:flex; gap:8px; align-items:flex-start; margin-top:14px; font-size:13.5px; color:var(--stone)}
+  .check input{margin-top:2px; accent-color:var(--plum)}
+  .big{font-size:44px; font-weight:750; letter-spacing:-1px; line-height:1.05}
+  .headline-note{color:var(--stone); font-size:14px; margin-top:6px; line-height:1.5}
+  .bars{margin-top:18px}
+  .barrow{display:grid; grid-template-columns:190px 1fr 90px; gap:10px; align-items:center; margin-bottom:12px; font-size:13.5px}
+  .barrow .lbl small{display:block; color:var(--stone); font-size:11.5px}
+  .bartrack{position:relative; height:22px}
+  .barfill{position:absolute; top:0; height:22px; border-radius:4px}
+  .whisker{position:absolute; top:10px; height:2px; background:var(--plum); opacity:.45}
+  .barval{text-align:right; font-variant-numeric:tabular-nums; font-weight:600}
+  .eqhead{margin-top:20px; font-size:14px; font-weight:600; color:var(--plum)}
+  .eqgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:10px}
+  .eq{background:var(--chalk); border-radius:10px; padding:12px 14px}
+  .eq b{display:block; font-size:20px; font-weight:700}
+  .eq span{font-size:12.5px; color:var(--stone)}
+  .carbon{margin-top:14px; font-size:14px; color:var(--stone)}
+  .carbon b{color:var(--plum)}
+  h2{font-size:17px; font-weight:700; margin-bottom:4px}
+  .note{font-size:12.5px; color:var(--stone); margin-top:8px; line-height:1.55}
+  svg text{font-family:inherit}
+  .stackrow{display:grid; grid-template-columns:150px 1fr 110px; gap:10px; align-items:center; margin-bottom:10px; font-size:13.5px}
+  .stacktrack{position:relative; height:30px; border-radius:5px; overflow:hidden; background:var(--chalk)}
+  .seg{position:absolute; top:0; height:30px}
+  .scaleline{font-size:14px; color:var(--stone); margin-top:8px; line-height:1.6}
+  .scaleline b{color:var(--plum); font-variant-numeric:tabular-nums}
+  .foot{font-size:12.5px; color:var(--stone); line-height:1.6}
+  .foot a{color:var(--stone)}
+  @media(max-width:640px){ .grid2{grid-template-columns:1fr} #swap{display:none} .eqgrid,.row2{grid-template-columns:1fr} .barrow{grid-template-columns:130px 1fr 70px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AI model energy calculator</h1>
+  <p class="sub">A task determines which models can do it and how many tokens each one burns. Pick a task and two models to see what right-sizing saves.</p>
+
+  <div class="card">
+    <label>Task</label>
+    <div class="chips" id="taskchips"></div>
+    <div class="grid2">
+      <div><label>Model A, current choice</label><select id="selA"></select><div class="warn" id="warnA"></div></div>
+      <button id="swap" title="Swap models">&#8646;</button>
+      <div><label>Model B, alternative</label><select id="selB"></select><div class="warn" id="warnB"></div></div>
+    </div>
+    <div class="row2">
+      <div>
+        <label>Tasks per month: <span class="rangeval" id="volval"></span></label>
+        <input type="range" id="vol" min="2" max="6" step="0.05" value="3">
+      </div>
+      <div>
+        <label>Grid for carbon</label>
+        <select id="grid">
+          <option value="host">Host default (model-specific)</option>
+          <option value="0.369">US average (0.369 kgCO2e/kWh)</option>
+          <option value="0.213">EU average (0.213)</option>
+          <option value="0.028">Norway (0.028)</option>
+          <option value="0.713">India (0.713)</option>
+          <option value="0.481">World average (0.481)</option>
+        </select>
+      </div>
+    </div>
+    <div class="check"><input type="checkbox" id="adj"><span>Adjust for task success: divides energy by an estimated success rate, pricing in failed attempts. A rough proxy, off by default.</span></div>
+  </div>
+
+  <div class="card">
+    <div class="big" id="headline"></div>
+    <div class="headline-note" id="headnote"></div>
+    <div class="bars" id="bars"></div>
+    <div class="eqhead" id="eqhead"></div>
+    <div class="eqgrid" id="eqs"></div>
+    <div class="carbon" id="carbon"></div>
+  </div>
+
+  <div class="card">
+    <h2>Energy against capability</h2>
+    <p class="note" style="margin-top:2px">Each dot is a model: energy per standard query (log scale) against the intelligence index. Down and left is better. Click a dot to set it as model B.</p>
+    <div id="scatter"></div>
+  </div>
+
+  <div class="card">
+    <h2>At scale</h2>
+    <p class="note" style="margin-top:2px">ChatGPT alone handles about 2.5 billion prompts a day. Suppose a share of that traffic (standard queries) ran on model A versus model B.</p>
+    <div class="row2" style="margin-top:10px">
+      <div>
+        <label>Share of prompts: <span class="rangeval" id="shareval"></span></label>
+        <input type="range" id="share" min="0.1" max="10" step="0.1" value="1">
+      </div>
+    </div>
+    <div style="margin-top:14px" id="shiftbars"></div>
+    <div class="scaleline" id="scen"></div>
+  </div>
+
+  <div class="card foot">
+    <b>Method and caveats.</b> Energy per query = (latency + output tokens / throughput) &times; server power &times; utilization &times; PUE, estimated from API telemetry (<a href="https://arxiv.org/abs/2505.09598">Jegham et al. 2025</a>), snapshot 2026-08-12, standardized at 1,500 output tokens and scaled by task-dependent token counts. Claude Opus 5 has no telemetry row yet; its figure is computed with the same formula from Artificial Analysis speed and latency, calibrated on Claude 4.5 Sonnet (marked est.). Token counts per task and the success proxy are working assumptions. Capability floors use the Artificial Analysis intelligence index plus agentic benchmarks. Inference only: training, embodied hardware, and networking are excluded. Whiskers show &plusmn;1 standard deviation. Vendor-disclosed figures (Google: 0.24 Wh per median Gemini prompt; OpenAI: 0.34 Wh per average ChatGPT query) sit roughly 10x lower because they cover shorter prompts and assume high batching: treat levels as indicative and comparisons as the signal. Telemetry also conflates model size with serving speed, which is why Claude 4.5 Haiku scores above Sonnet. Sources: <a href="https://arxiv.org/abs/2505.09598">arXiv:2505.09598</a>, <a href="https://github.com/Nidhal-Jegham/HowHungryisAIDashboard">HowHungryisAI dashboard</a>, <a href="https://www.theclimatebrink.com/p/the-real-energy-use-of-agentic-ai">The Climate Brink</a>.
+  </div>
+</div>
+
+<script>
+const MODELS = [{"vendor": "OpenAI", "model": "GPT-5 (high)", "size": "Large", "ii": 45.0, "effort": "high", "supportsReasoning": "yes", "tb": 33.0, "tau": 85.0, "agentic": "yes", "whLow": 12.345, "wh": 21.311, "whHigh": 30.278, "cif": 0.34, "iiEst": false, "conf": "B", "est": false}, {"vendor": "OpenAI", "model": "GPT-5 mini (medium)", "size": "Medium", "ii": 39.0, "effort": "medium", "supportsReasoning": "yes", "tb": 29.0, "tau": 71.0, "agentic": "yes", "whLow": 2.339, "wh": 3.65, "whHigh": 4.961, "cif": 0.34, "iiEst": false, "conf": "B", "est": false}, {"vendor": "OpenAI", "model": "GPT-5 nano (minimal)", "size": "Small", "ii": 14.0, "effort": "none", "supportsReasoning": "yes", "tb": 7.0, "tau": 26.0, "agentic": "no", "whLow": 0.537, "wh": 0.634, "whHigh": 0.732, "cif": 0.34, "iiEst": false, "conf": "B", "est": false}, {"vendor": "Anthropic", "model": "Claude Opus 5", "size": "Large", "ii": 61, "iiEst": false, "effort": "high", "supportsReasoning": "yes", "tb": null, "tau": null, "agentic": "yes", "whLow": 10.9, "wh": 14.46, "whHigh": 18.1, "cif": 0.3, "conf": "C", "est": true}, {"vendor": "Anthropic", "model": "Claude 4.5 Sonnet", "size": "Large", "ii": 43.0, "effort": "medium", "supportsReasoning": "yes", "tb": 36.0, "tau": 78.0, "agentic": "yes", "whLow": 7.633, "wh": 9.79, "whHigh": 11.947, "cif": 0.3, "iiEst": false, "conf": "B", "est": false}, {"vendor": "Anthropic", "model": "Claude 4.5 Haiku", "size": "Large", "ii": 37.0, "effort": "medium", "supportsReasoning": "yes", "tb": 27.0, "tau": 55.0, "agentic": "yes", "whLow": 2.099, "wh": 11.199, "whHigh": 20.3, "cif": 0.3, "iiEst": false, "conf": "B", "est": false}, {"vendor": "Google", "model": "Gemini 2.5 Pro", "size": "Large", "ii": 35.0, "effort": "medium", "supportsReasoning": "yes", "tb": 27.0, "tau": 54.0, "agentic": "yes", "whLow": 2.25, "wh": 3.155, "whHigh": 4.06, "cif": 0.231, "iiEst": false, "conf": "B", "est": false}, {"vendor": "Google", "model": "Gemini 2.5 Flash", "size": "Large", "ii": 27.0, "effort": "none", "supportsReasoning": "yes", "tb": 14.0, "tau": 32.0, "agentic": "no", "whLow": 1.135, "wh": 2.314, "whHigh": 3.494, "cif": 0.231, "iiEst": false, "conf": "B", "est": false}];
+const TASKS = [{"name": "Classify or extract", "floor": 10, "reason": "no", "agent": "no", "tokens": {"none": 150, "medium": 700, "high": 1500}, "calls": 1, "basis": "Short structured output; thinking models burn extra reasoning tokens even here"}, {"name": "Draft an email or summary", "floor": 18, "reason": "no", "agent": "no", "tokens": {"none": 800, "medium": 2000, "high": 4000}, "calls": 1, "basis": "Standard generation; matches the 1,500-token benchmark order of magnitude"}, {"name": "Complex analysis", "floor": 30, "reason": "yes", "agent": "no", "tokens": {"none": 2000, "medium": 4500, "high": 8000}, "calls": 1, "basis": "Reasoning chains; Joule (2026) finds test-time scaling raises energy up to ~13x"}, {"name": "Agentic multi-step job", "floor": 33, "reason": "yes", "agent": "yes", "tokens": {"none": 1000, "medium": 1500, "high": 2500}, "calls": 13, "basis": "~13 model calls per human input (Climate Brink Claude Code logs); confidence C"}];
+const VHEX = {OpenAI:"#6DC695", Anthropic:"#FFA31D", Google:"#9278DD"};
+const HOUSE_DAY = 29.6, EV_KM = 0.17, HOUSE_YR = 10791, PROMPTS = 2.5e9, WORLD_CIF = 0.481;
+let state = {task:1, a:"GPT-5 (high)", b:"Gemini 2.5 Flash"};
+
+const byName = n => MODELS.find(m => m.model === n);
+const fmt = (n,d=0) => n.toLocaleString("en-US",{maximumFractionDigits:d});
+const nice = n => n>=1e6 ? fmt(n/1e6,1)+"M" : n>=1e3 ? fmt(n,0) : fmt(n, n<10?1:0);
+const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
+
+function tokensFor(m,t){ return t.tokens[m.effort]*t.calls; }
+function check(m,t){
+  const why=[];
+  if (m.ii < t.floor) why.push("intelligence index "+m.ii+(m.iiEst?" (est.)":"")+" is below this task's floor of "+t.floor);
+  if (t.reason==="yes" && m.supportsReasoning==="no") why.push("no reasoning mode");
+  if (t.agent==="yes" && m.agentic==="no") why.push("weak agentic benchmarks");
+  return why;
+}
+function success(m,t){ return clamp(0.6 + 0.02*(m.ii - t.floor), 0.35, 0.97); }
+function whTask(m,t,adj){
+  const tok=tokensFor(m,t), f=adj?1/success(m,t):1;
+  return {c:m.wh/1500*tok*f, lo:m.whLow/1500*tok*f, hi:m.whHigh/1500*tok*f, tok};
+}
+function dispName(m){ return m.model + (m.est ? " (est.)" : ""); }
+
+function fillSelects(){
+  const vendors=[...new Set(MODELS.map(m=>m.vendor))];
+  for (const id of ["selA","selB"]){
+    const sel=document.getElementById(id); sel.innerHTML="";
+    for (const v of vendors){
+      const og=document.createElement("optgroup"); og.label=v;
+      MODELS.filter(m=>m.vendor===v).forEach(m=>{
+        const o=document.createElement("option"); o.value=m.model;
+        o.textContent=m.model+"  ("+m.wh.toFixed(1)+" Wh"+(m.est?" est.":"")+")";
+        og.appendChild(o);
+      });
+      sel.appendChild(og);
+    }
+  }
+  document.getElementById("selA").value=state.a;
+  document.getElementById("selB").value=state.b;
+}
+function drawTasks(){
+  const div=document.getElementById("taskchips"); div.innerHTML="";
+  TASKS.forEach((t,i)=>{
+    const b=document.createElement("button");
+    b.className="chip"+(i===state.task?" on":""); b.textContent=t.name;
+    b.onclick=()=>{state.task=i; render();};
+    div.appendChild(b);
+  });
+}
+function warnbox(id,m,t){
+  const el=document.getElementById(id), why=check(m,t);
+  if (why.length){ el.textContent="Likely not capable of this task ("+why.join("; ")+"). The comparison is not meaningful: the cheaper model may simply fail."; el.classList.add("show"); }
+  else el.classList.remove("show");
+  return why.length>0;
+}
+
+function render(){
+  document.querySelectorAll("#taskchips .chip").forEach((b,i)=>b.classList.toggle("on", i===state.task));
+  const t=TASKS[state.task], A=byName(state.a), B=byName(state.b);
+  const adj=document.getElementById("adj").checked;
+  const tasks=Math.round(Math.pow(10,+document.getElementById("vol").value));
+  document.getElementById("volval").textContent=nice(tasks);
+  const badA=warnbox("warnA",A,t), badB=warnbox("warnB",B,t);
+
+  const a=whTask(A,t,adj), b=whTask(B,t,adj);
+  const save=a.c-b.c, pct=1-b.c/a.c;
+  const kwhYr=save*tasks*12/1000;
+  const kwhLo=(a.lo-b.hi)*tasks*12/1000, kwhHi=(a.hi-b.lo)*tasks*12/1000;
+
+  const head=document.getElementById("headline");
+  if (save>=0) head.textContent = fmt(pct*100,0)+"% less energy per task";
+  else { const ratio=b.c/a.c; head.textContent = ratio>=3 ? fmt(ratio,ratio>=10?0:1)+"x more energy per task" : fmt(-pct*100,0)+"% more energy per task"; }
+  head.style.color = save>=0 ? "var(--clover)" : "#B0532A";
+  document.getElementById("headnote").innerHTML =
+    "Switching from "+dispName(A)+" to "+dispName(B)+" on \u201c"+t.name.toLowerCase()+"\u201d. "+
+    A.model+" burns "+fmt(a.tok)+" output tokens per task; "+B.model+" burns "+fmt(b.tok)+"."+
+    (adj?" Adjusted for estimated success rates ("+fmt(success(A,t)*100,0)+"% vs "+fmt(success(B,t)*100,0)+"%).":"")+
+    ((badA||badB)?" <b style='color:#8A5A00'>A capability warning applies; treat this comparison with care.</b>":"");
+
+  const maxWh=Math.max(a.hi,b.hi);
+  const bars=document.getElementById("bars"); bars.innerHTML="";
+  [[A,a],[B,b]].forEach(([m,v])=>{
+    const row=document.createElement("div"); row.className="barrow";
+    row.innerHTML="<div class='lbl'>"+dispName(m)+"<small>"+fmt(v.tok)+" tokens per task</small></div>"+
+      "<div class='bartrack'><div class='barfill' style='width:"+(v.c/maxWh*100)+"%;background:"+VHEX[m.vendor]+"'></div>"+
+      "<div class='whisker' style='left:"+(v.lo/maxWh*100)+"%;width:"+Math.max((v.hi-v.lo)/maxWh*100,0.5)+"%'></div></div>"+
+      "<div class='barval'>"+(v.c<10?v.c.toFixed(2):v.c.toFixed(1))+" Wh</div>";
+    bars.appendChild(row);
+  });
+
+  document.getElementById("eqhead").textContent =
+    "Over a year, if all "+nice(tasks)+" monthly tasks moved from "+A.model+" to "+B.model+":";
+  const dir = save>=0 ? "saved" : "added";
+  const rng = (kwhLo>=0||kwhHi<=0)
+    ? "range "+nice(Math.min(Math.abs(kwhLo),Math.abs(kwhHi)))+" to "+nice(Math.max(Math.abs(kwhLo),Math.abs(kwhHi)))
+    : "range spans zero; the models overlap within uncertainty";
+  document.getElementById("eqs").innerHTML=[
+    "<b>"+nice(Math.abs(kwhYr))+" kWh</b><span>"+dir+" ("+rng+")</span>",
+    "<b>"+nice(Math.abs(kwhYr)/HOUSE_DAY)+" days</b><span>of a US household's electricity</span>",
+    "<b>"+nice(Math.abs(kwhYr)/EV_KM)+" km</b><span>of EV driving</span>",
+  ].map(x=>"<div class='eq'>"+x+"</div>").join("");
+
+  const g=document.getElementById("grid").value;
+  let kg = g==="host" ? (a.c*tasks*12/1000)*A.cif-(b.c*tasks*12/1000)*B.cif : kwhYr*(+g);
+  document.getElementById("carbon").innerHTML="Carbon: about <b>"+nice(Math.abs(kg))+" kgCO2e "+(kg>=0?"avoided":"added")+
+    " per year</b> on the selected grid. The Norway-to-India spread is roughly 25x for identical energy.";
+
+  drawScatter(); drawShift();
+}
+
+function drawScatter(){
+  const W=820,H=430,mL=46,mR=14,mT=14,mB=40;
+  const xmin=Math.log10(0.4),xmax=Math.log10(30);
+  const x=wh=>mL+(Math.log10(wh)-xmin)/(xmax-xmin)*(W-mL-mR);
+  const y=ii=>H-mB-(ii-0)/70*(H-mT-mB);
+  let s="<svg viewBox='0 0 "+W+" "+H+"' style='width:100%;height:auto'>";
+  for (const g of [1,3,10,25]){
+    s+="<line x1='"+x(g)+"' y1='"+mT+"' x2='"+x(g)+"' y2='"+(H-mB)+"' stroke='#E8E6E9'/>";
+    s+="<text x='"+x(g)+"' y='"+(H-mB+18)+"' font-size='11' fill='#604D64' text-anchor='middle'>"+g+"</text>";
+  }
+  for (const g of [20,40,60]){
+    s+="<line x1='"+mL+"' y1='"+y(g)+"' x2='"+(W-mR)+"' y2='"+y(g)+"' stroke='#E8E6E9'/>";
+    s+="<text x='"+(mL-8)+"' y='"+(y(g)+4)+"' font-size='11' fill='#604D64' text-anchor='end'>"+g+"</text>";
+  }
+  s+="<text x='"+(W/2)+"' y='"+(H-6)+"' font-size='12' fill='#604D64' text-anchor='middle'>Wh per standard query (log scale)</text>";
+  s+="<text x='14' y='"+(mT+(H-mT-mB)/2)+"' font-size='12' fill='#604D64' text-anchor='middle' transform='rotate(-90 14 "+(mT+(H-mT-mB)/2)+")'>intelligence index</text>";
+  for (const m of MODELS){
+    const sel=m.model===state.a||m.model===state.b;
+    s+="<circle cx='"+x(m.wh)+"' cy='"+y(m.ii)+"' r='"+(sel?8:6)+"' fill='"+VHEX[m.vendor]+"' stroke='"+(sel?"#4A334E":"#fff")+"' stroke-width='"+(sel?2.5:1)+"' style='cursor:pointer' data-m=\""+m.model+"\"><title>"+dispName(m)+": "+m.wh.toFixed(2)+" Wh, index "+m.ii+"</title></circle>";
+    const anchor = (m.model==="Claude 4.5 Haiku") ? "end" : "start";
+    const dx = anchor==="end" ? -10 : 10;
+    s+="<text x='"+(x(m.wh)+dx)+"' y='"+(y(m.ii)-9)+"' font-size='11' fill='#4A334E' text-anchor='"+anchor+"'>"+dispName(m)+"</text>";
+  }
+  s+="</svg>";
+  const div=document.getElementById("scatter"); div.innerHTML=s;
+  div.querySelectorAll("circle").forEach(c=>c.addEventListener("click",()=>{
+    state.b=c.getAttribute("data-m"); document.getElementById("selB").value=state.b; render();
+  }));
+}
+
+function drawShift(){
+  const A=byName(state.a), B=byName(state.b);
+  const share=+document.getElementById("share").value;
+  document.getElementById("shareval").textContent=share.toFixed(1)+"%";
+  const gwhA=A.wh*PROMPTS*share/100*365/1e9, gwhB=B.wh*PROMPTS*share/100*365/1e9;
+  const maxG=Math.max(gwhA,gwhB);
+  const div=document.getElementById("shiftbars"); div.innerHTML="";
+  [[A,gwhA],[B,gwhB]].forEach(([m,g])=>{
+    const row=document.createElement("div"); row.className="stackrow";
+    row.innerHTML="<div>"+dispName(m)+"</div><div class='stacktrack'><div class='seg' style='left:0;width:"+(g/maxG*100)+"%;background:"+VHEX[m.vendor]+"'></div></div><div class='barval'>"+fmt(g,0)+" GWh/yr</div>";
+    div.appendChild(row);
+  });
+  const d=gwhA-gwhB, verb=d>=0?"saves":"adds";
+  document.getElementById("scen").innerHTML="Running <b>"+share.toFixed(1)+"%</b> of prompts on "+B.model+" instead of "+A.model+" "+verb+" about <b>"+
+    fmt(Math.abs(d),0)+" GWh per year</b>: the annual electricity of <b>"+fmt(Math.abs(d)*1e6/HOUSE_YR,0)+" US households</b>, or roughly <b>"+
+    nice(Math.abs(d)*1e6*WORLD_CIF/1000)+" tCO2e</b> on a world-average grid.";
+}
+
+fillSelects(); drawTasks();
+document.getElementById("selA").onchange=e=>{state.a=e.target.value; render();};
+document.getElementById("selB").onchange=e=>{state.b=e.target.value; render();};
+document.getElementById("swap").onclick=()=>{[state.a,state.b]=[state.b,state.a]; document.getElementById("selA").value=state.a; document.getElementById("selB").value=state.b; render();};
+for (const id of ["vol","share"]) document.getElementById(id).oninput=render;
+document.getElementById("grid").onchange=render;
+document.getElementById("adj").onchange=render;
+render();
+</script>
+</body>
+</html>

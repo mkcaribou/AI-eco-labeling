@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# Office temp and lock files
+~$*
+.~lock.*
+
+# Internal working documents (remove these lines to publish them)
+CLAUDE.MD
+AI Eco labeling as Industry Resource .docx

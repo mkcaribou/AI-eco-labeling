@@ -1,0 +1,21 @@
+vendor,model,size,ii,effort,supportsReasoning,tb,tau,agentic,whLow,wh,whHigh,cif
+Anthropic,Claude 4.5 Sonnet,Large,43.0,medium,yes,36.0,78.0,yes,7.633,9.79,11.947,0.3
+Anthropic,Claude 4.5 Haiku,Large,37.0,medium,yes,27.0,55.0,yes,2.099,11.199,20.3,0.3
+Anthropic,Claude 4.1 Opus,Large,,medium,yes,34.0,71.0,yes,10.038,12.369,14.699,0.3
+DeepSeek,DeepSeek V3 (Azure),Large,22.0,none,no,15.0,47.0,no,3.367,3.689,4.01,0.34
+DeepSeek,DeepSeek R1 (Azure),Large,27.0,high,yes,16.0,37.0,no,6.074,9.056,12.038,0.34
+Google,Gemini 2.5 Flash (Vertex),Large,27.0,none,yes,14.0,32.0,no,1.135,2.314,3.494,0.231
+Google,Gemini 2.5 Pro Vertex,Large,35.0,medium,yes,27.0,54.0,yes,2.25,3.155,4.06,0.231
+Meta,Llama 4 Maverick,Micro,18.0,none,no,7.0,18.0,no,0.188,0.235,0.281,0.3
+Meta,Llama 3.3 70B,Medium,14.0,none,no,3.0,27.0,no,1.138,1.66,2.182,0.3
+Mistral AI,Mistral Medium 3,Large,19.0,none,no,4.0,24.0,no,6.999,8.804,10.61,0.34
+Moonshot,Kimi K2 Thinking,Large,41.0,high,yes,31.0,93.0,yes,4.085,6.242,8.399,0.3
+OpenAI,GPT-5 nano (minimal),Small,14.0,none,yes,7.0,26.0,no,0.537,0.634,0.732,0.34
+OpenAI,GPT-4o (Nov),Large,17.0,none,no,8.0,25.0,no,1.58,2.261,2.943,0.34
+OpenAI,GPT-4o mini,Medium,,none,no,,,no,1.694,2.776,3.859,0.34
+OpenAI,GPT-5 mini (medium),Medium,39.0,medium,yes,29.0,71.0,yes,2.339,3.65,4.961,0.34
+OpenAI,GPT-5 (minimal),Large,24.0,none,yes,18.0,67.0,yes,3.272,4.387,5.503,0.34
+OpenAI,o3,Large,38.0,high,yes,37.0,81.0,yes,3.234,5.193,7.152,0.34
+OpenAI,GPT-5 nano (high),Small,27.0,high,yes,12.0,37.0,no,3.446,6.364,9.281,0.34
+OpenAI,GPT-5 (high),Large,45.0,high,yes,33.0,85.0,yes,12.345,21.311,30.278,0.34
+xAI,Grok 3 mini Reasoning (high),Medium,32.0,high,yes,17.0,90.0,yes,1.723,2.98,4.238,0.385
