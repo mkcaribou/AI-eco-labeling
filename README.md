@@ -2,7 +2,7 @@
 
 A proof of concept for estimating the marginal environmental impact of AI model choice. Pick a task and two models, and see what right-sizing saves in energy and carbon.
 
-**Live calculator:** https://YOUR-USERNAME.github.io/AI-eco-labeling/ (see setup below)
+**Live calculator:** https://mkcaribou.github.io/AI-eco-labeling/
 
 ## Why
 
@@ -18,6 +18,7 @@ The headline finding: model choice spans one to two orders of magnitude in energ
 | `AI model energy calculator.xlsx` | The underlying model: dataset, assumptions, calculator, scenarios |
 | `data/model_energy_dataset_mvp_v3_2026-08-12.csv` | Curated MVP dataset (8 models, capability data, confidence grades) |
 | `data/raw_artificialanalysis_2026-08-12.csv` | Raw source snapshot for provenance |
+| `IMPACT.md` | The funding case: market size, leverage, and tiered impact scenarios |
 
 ## Method
 
